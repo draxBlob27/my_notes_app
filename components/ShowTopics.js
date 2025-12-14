@@ -1,7 +1,14 @@
 import React from 'react'
+import axios from 'axios';
+import { fetchData } from 'next-auth/client/_utils';
 
-const ShowTopics = ({ notes, setSelectedNoteId, setMode }) => {
+const ShowTopics = ({ notes, setSelectedNoteId, setMode, fetchData }) => {
     // {console.log(notes)}
+    const deleteNote = async (noteId) => {
+        await axios.delete(`/api/note?noteId=${noteId}`);
+        fetchData();
+        setMode(0);
+    }
     return (
         <>
             <ol className='flex flex-col gap-3'>
@@ -19,7 +26,11 @@ const ShowTopics = ({ notes, setSelectedNoteId, setMode }) => {
                                 setSelectedNoteId(note.id);
                                 setMode(2);
                             }}>Edit</button>
-                            {/* <button onClick={}>Delete</button> */}
+                            <button onClick={async () => {
+                                if (confirm("Do you want to delete this note.")) {
+                                    await deleteNote(note.id);
+                                }
+                            }}>Delete</button>
                         </div> 
                     </div>
                 ))}

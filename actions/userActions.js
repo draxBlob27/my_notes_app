@@ -57,3 +57,8 @@ export const editNote = async (noteId, body) => {
     await connectDB();
     await Note.findOneAndUpdate({_id: noteId}, body);
 }
+
+export const deleteNote = async (noteId) => {
+    await connectDB();
+    await Note.deleteOne({_id: noteId});
+}
