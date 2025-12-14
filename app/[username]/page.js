@@ -30,7 +30,12 @@ const profile = () => {
         ? [...tags, form.tags.trim()]
         : [...tags];
 
-    await axios.post(`/api/note?userId=${user._id}`, { ...form, tags: finalTags })
+    const res = await axios.post(`/api/note?userId=${user._id}`, { ...form, tags: finalTags })
+    const note_id = res.data.message;
+    // console.log(note_id)
+
+    axios.post(`http://127.0.0.1:8000/save_embeddings`, {note_id: note_id, user_id: user._id, topic: form.topic, tags: form.tags, content: form.content});
+    // console.log(embed)
     fetchNotes(user._id);
     setForm({});
     setTags([]);
@@ -50,7 +55,7 @@ const profile = () => {
   const fetchNotes = async (userId) => {
     const noteRes = await axios.get(`/api/note?userId=${userId}`);
     setNotes(noteRes.data);
-    console.log(notes);
+    // console.log(notes);
   }
 
   useEffect(() => {

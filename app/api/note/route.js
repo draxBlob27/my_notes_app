@@ -6,13 +6,13 @@ export const GET = async (req) => {
         const userId = searchParams.get("userId")
 
         if (!userId)
-            return Response.json({ error: "UserId is required" }, { status: 403 });
+            return Response.json({ error: "UserId is required" }, { status: 400 });
 
         const notes = await getNote(userId);
         return Response.json(notes);
     } catch (error) {
         console.error(error.message);
-        return Response.json({ error: error.message }, { status: 503 })
+        return Response.json({ error: error.message }, { status: 500 })
     }
 }
 
@@ -25,13 +25,14 @@ export const POST = async (req) => {
 
 
         if (!userId)
-            return Response.json({ error: "UserId is required" }, { status: 302 });
+            return Response.json({ error: "UserId is required" }, { status: 300 });
 
-        await createNote(userId, body);
-        return Response.json({ message: "Successfully added new note" }, {status: 202});
+        const note = await createNote(userId, body);
+        // console.log(note._id.toString())
+        return Response.json({ message: note._id.toString()}, {status: 200});
     } catch (error) {
         console.error(error.message);
-        return Response.json({ error: error.message }, { status: 502 })
+        return Response.json({ error: error.message }, { status: 500 })
     }
 }
 
@@ -42,13 +43,13 @@ export const PUT = async (req) => {
 
         const body = await req.json();
         if (!noteId)
-            return Response.json({ error: "Note id not given" }, { status: 401 });
+            return Response.json({ error: "Note id not given" }, { status: 400 });
 
         await editNote(noteId, body);
-        return Response.json({ message: "Successfully edited note" }, {status: 201})
+        return Response.json({ message: "Successfully edited note" }, {status: 200})
     } catch (error) {
         console.error(error.message);
-        return Response.json({ error: error.message }, { status: 501 })
+        return Response.json({ error: error.message }, { status: 500 })
     }
 }
 

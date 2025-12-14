@@ -27,7 +27,7 @@ export const getUser = async (email_got) => {
 
 export const createNote = async (userId, body) => {
     await connectDB();
-    await Note.create({
+    return await Note.create({
         topic: body.topic,
         tags: body.tags || [],
         content: body.content,
