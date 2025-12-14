@@ -7,6 +7,8 @@ import ShowTopics from '@/components/ShowTopics';
 import AddNoteWindow from '@/components/AddNoteWindow';
 import ShowNote from '@/components/ShowNote';
 import EditingWindow from '@/components/EditingWindow';
+import SearchBar from '@/components/SearchBar';
+import SearchResult from '@/components/SearchResult';
 
 const profile = () => {
   const { data: session } = useSession();
@@ -15,8 +17,10 @@ const profile = () => {
   const [mode, setMode] = useState(0);
   const [tags, setTags] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
+  const [query, setQuery] = useState("")
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
     let user = await fetchUser(session.user?.email);
     // if (form.tags.length)
     //   tags.push(form.tags.trim());
@@ -56,19 +60,31 @@ const profile = () => {
     fetchData();
   }, [session])
 
+  useEffect(() => {
+    if (query.length > 3)
+      setMode(3);
+    else {
+      if (mode === 3) setMode(0);
+    }
+
+  }, [query])
+
 
   return (
     <>
       <Navbar />
+      <SearchBar query={query} setQuery={setQuery} setMode={setMode} />
+
       <div className='grid grid-cols-5 p-2 text-white'>
         <div className='col-span-1 flex flex-col gap-4'>
-          <button type='button' onClick={() => setMode(0)}>Plus sign</button>
-          <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} fetchData={fetchData}/>
+          <button type='button' onClick={() => { setMode(0); setForm({}); setTags([]); }}>Plus sign</button>
+          <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} fetchData={fetchData} />
         </div>
         <div className='col-span-4 p-4'>
           {mode === 0 && <AddNoteWindow form={form} setForm={setForm} tags={tags} setTags={setTags} handleSubmit={handleSubmit} />}
           {mode === 1 && <ShowNote notes={notes} noteId={selectedNoteId} />}
-          {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData}/>}
+          {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData} />}
+          {mode === 3 && <SearchResult query={query.toLowerCase()} notes={notes} />}
         </div>
       </div>
     </>

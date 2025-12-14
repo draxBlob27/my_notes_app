@@ -34,7 +34,7 @@ const EditingWindow = ({ notes, noteId, form, setForm, tags, setTags, setMode, r
         setTags(prev => prev.filter(item => item !== tag));
     }
 
-    console.log(note)
+    // console.log(note)
 
     return (
         <>
