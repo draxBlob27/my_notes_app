@@ -52,3 +52,8 @@ export const createUser = async (user) => {
 
     return newUser;
 }
+
+export const editNote = async (noteId, body) => {
+    await connectDB();
+    await Note.findOneAndUpdate({_id: noteId}, body);
+}

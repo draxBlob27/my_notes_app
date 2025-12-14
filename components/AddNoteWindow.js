@@ -2,7 +2,7 @@ import React from 'react'
 
 const AddNoteWindow = ({ form, setForm, tags, setTags, handleSubmit }) => {
     const addTags = (e) => {
-        setTags(prev => [...prev, form.tags]);
+        setTags(prev => [...prev, form.tags.trim()]);
         setForm({ ...form, tags: "" });
     }
 

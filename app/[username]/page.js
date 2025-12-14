@@ -6,21 +6,27 @@ import axios from 'axios';
 import ShowTopics from '@/components/ShowTopics';
 import AddNoteWindow from '@/components/AddNoteWindow';
 import ShowNote from '@/components/ShowNote';
+import EditingWindow from '@/components/EditingWindow';
 
 const profile = () => {
   const { data: session } = useSession();
   const [notes, setNotes] = useState([]);
   const [form, setForm] = useState({});
-  const [newNote, setNewNote] = useState(true);
+  const [mode, setMode] = useState(0);
   const [tags, setTags] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState(null);
 
   const handleSubmit = async (e) => {
     let user = await fetchUser(session.user?.email);
-    if (form.tags.length != 0)
-      tags.push(form.tags)
+    // if (form.tags.length)
+    //   tags.push(form.tags.trim());
 
-    await axios.post(`/api/note?userId=${user._id}`, {...form, tags})
+    const finalTags =
+      form.tags.length
+        ? [...tags, form.tags.trim()]
+        : [...tags];
+
+    await axios.post(`/api/note?userId=${user._id}`, { ...form, tags: finalTags })
     fetchNotes(user._id);
     setForm({});
     setTags([]);
@@ -41,7 +47,6 @@ const profile = () => {
     const noteRes = await axios.get(`/api/note?userId=${userId}`);
     setNotes(noteRes.data);
     console.log(notes);
-    
   }
 
   useEffect(() => {
@@ -54,15 +59,16 @@ const profile = () => {
 
   return (
     <>
-      <Navbar/>
+      <Navbar />
       <div className='grid grid-cols-5 p-2 text-white'>
         <div className='col-span-1 flex flex-col gap-4'>
-          <button type='button' onClick={() => setNewNote(true)}>Plus sign</button>
-          <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setNewNote={setNewNote}/>
+          <button type='button' onClick={() => setMode(0)}>Plus sign</button>
+          <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} />
         </div>
-        <div className='col-span-4'>
-            {newNote && <AddNoteWindow form={form} setForm={setForm} tags={tags} setTags={setTags} handleSubmit={handleSubmit}/>}
-            {!newNote && <ShowNote notes={notes} noteId = {selectedNoteId}/>}
+        <div className='col-span-4 p-4'>
+          {mode === 0 && <AddNoteWindow form={form} setForm={setForm} tags={tags} setTags={setTags} handleSubmit={handleSubmit} />}
+          {mode === 1 && <ShowNote notes={notes} noteId={selectedNoteId} />}
+          {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData}/>}
         </div>
       </div>
     </>
