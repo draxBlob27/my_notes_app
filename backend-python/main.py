@@ -34,7 +34,7 @@ def db_exists(db_name):
 @app.post("/save_embeddings")
 def add_embeddings(data: NoteData):
     combined_text = f"{data.topic} {data.tags} {data.content}"
-    embeddings = encoder.encode(combined_text)
+    embeddings = encoder.encode(combined_text).tolist()
     if not db_exists("my_notes"):
         client.create_collection(
             collection_name="my_notes",
@@ -45,8 +45,8 @@ def add_embeddings(data: NoteData):
         )
     
     payload = {
-        "noteId" : data.note_id,
-        "userId" : data.user_id
+        "note_id" : data.note_id,
+        "user_id" : data.user_id
     }
 
     client.upload_points(
@@ -62,3 +62,21 @@ def add_embeddings(data: NoteData):
 
     return {"status": "success", "note_id": data.note_id, "user_id": data.user_id}
 
+@app.get("/search")
+def match_query(query: str, user_id: str):
+    user_filter = models.Filter(
+        must = [models.FieldCondition(key = "user_id", match=models.MatchValue(value=user_id))]
+    )
+    
+    hits = client.query_points(
+        collection_name="my_notes",
+        query=encoder.encode(query).tolist(),
+        limit= 5,
+        query_filter = user_filter,
+        with_payload=True,
+    ).points
+
+    for hit in hits:
+        print("Score:", hit.score)
+
+    return [hit.payload['note_id'] for hit in hits]
