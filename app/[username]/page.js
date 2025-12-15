@@ -9,6 +9,7 @@ import ShowNote from '@/components/ShowNote';
 import EditingWindow from '@/components/EditingWindow';
 import SearchBar from '@/components/SearchBar';
 import SearchResult from '@/components/SearchResult';
+import RagInterface from '@/components/RagInterface';
 
 const profile = () => {
   const { data: session } = useSession();
@@ -21,6 +22,9 @@ const profile = () => {
   const [userId, setUserId] = useState(null)
   const [note_semantic, setNote_semantic] = useState([]);
   const [raw_notes, setRaw_notes] = useState([]);
+  const [ragQuery, setRagQuery] = useState("");
+  const [llmResponse, setLlmResponse] = useState("");
+  const [sendReqtoLLm, setSendReqtoLLm] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,15 +107,14 @@ const profile = () => {
   }
 
   useEffect(() => {
-
     if (query.length > 3) {
       setMode(3);
       const raw = raw_results(query, notes);
       setRaw_notes(raw);
 
       embedding_results(query, userId, notes)
-      .then(setNote_semantic)
-      .catch(console.error);
+        .then(setNote_semantic)
+        .catch(console.error);
     }
     else {
       if (mode === 3) setMode(0);
@@ -121,6 +124,63 @@ const profile = () => {
     }
   }, [query, notes, userId])
 
+  const preProcess = async (ragQuery) => {
+    const semantic = await embedding_results(ragQuery, userId, notes);
+    let text = "Query: ";
+    text += ragQuery;
+    text += "\n\n--- NOTES ---\n";
+    for (const note of notes) {
+      if (semantic.includes(note.id)) {
+        text += note.content;
+        text += "\n";
+      }
+    }
+
+    const final_message = [
+      {
+        "role": "system",
+        "content": `You are an assistant that answers ONLY using the provided notes.If the answer is not present in the notes, say "I don't know".`
+      },
+      {
+        "role": "user",
+        "content": text
+      }
+    ]
+
+    return final_message
+  }
+
+  const getResponseLLM = async (messages) => {
+    const response = await axios.post(
+      'http://localhost:8000/v1/chat/completions',
+      {
+        model: "meta-llama/Llama-3.1-8B-Instruct",
+        messages: messages
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  }
+
+  useEffect(() => {
+    if (!sendReqtoLLm)
+      return
+
+    const run = async () => {
+      const messages = await preProcess(ragQuery);
+      const res = await getResponseLLM(messages)
+      setLlmResponse(res.choices[0].message.content);
+      setRagQuery("");
+      setSendReqtoLLm(false);
+    }
+
+    run();
+  }, [sendReqtoLLm])
 
   return (
     <>
@@ -137,6 +197,7 @@ const profile = () => {
           {mode === 1 && <ShowNote notes={notes} noteId={selectedNoteId} />}
           {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData} />}
           {mode === 3 && <SearchResult rawNotes={raw_notes} semanticNotes={note_semantic} />}
+          {mode === 4 && <RagInterface ragQuery={ragQuery} setRagQuery={setRagQuery} setSendReqtoLLm={setSendReqtoLLm} llmResponse={llmResponse} />}
         </div>
       </div>
     </>
