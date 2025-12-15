@@ -38,7 +38,7 @@ const profile = () => {
     const note_id = res.data.message;
     // console.log(note_id)
 
-    axios.post(`http://127.0.0.1:8000/save_embeddings`, { note_id: note_id, user_id: user._id, topic: form.topic, tags: form.tags, content: form.content });
+    axios.post(`http://127.0.0.1:8000/save_embeddings`, { note_id: note_id, user_id: userId, topic: form.topic, tags: finalTags.toString(), content: form.content });
     // console.log(embed)
     fetchNotes(user._id);
     setForm({});

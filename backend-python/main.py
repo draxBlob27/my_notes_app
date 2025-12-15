@@ -71,12 +71,12 @@ def match_query(query: str, user_id: str):
     hits = client.query_points(
         collection_name="my_notes",
         query=encoder.encode(query).tolist(),
-        limit= 5,
+        limit= 3,
         query_filter = user_filter,
         with_payload=True,
     ).points
 
-    for hit in hits:
-        print("Score:", hit.score)
+    # for hit in hits:
+    #     print(hit.payload, "this: ", hit.score)
 
     return [hit.payload['note_id'] for hit in hits]

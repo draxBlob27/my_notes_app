@@ -11,7 +11,7 @@ const ShowTopics = ({ notes, setSelectedNoteId, setMode, fetchData }) => {
     }
     return (
         <>
-            <ol className='flex flex-col gap-3'>
+            <ol className='flex h-[600] flex-col gap-3 overflow-y-scroll'>
                 {notes.map((note, index) => (
                     <div key={`note-${note.id ?? index}`}>
                         <li onClick={() => {
