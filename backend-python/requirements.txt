@@ -1,4 +1,6 @@
-fastapi["standard"]
+fastapi
+uvicorn
+pydantic
 qdrant-client
 sentence-transformers
-pydantic
+python-dotenv
