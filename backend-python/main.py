@@ -4,8 +4,11 @@ from qdrant_client import models, QdrantClient
 from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 import uuid
-# python -m uvicorn main:app --reload
+from dotenv import load_dotenv
+import os
 
+# python -m uvicorn main:app --reload
+load_dotenv(dotenv_path='/Users/sanilparmar/Desktop/notes-app/.env.local')
 
 class NoteData(BaseModel):
     note_id: str
@@ -24,8 +27,8 @@ app.add_middleware(
 )
 # client = QdrantClient(path="/Users/sanilparmar/Desktop/notes-app/backend-python/vector_embeddings")
 client = QdrantClient(
-    url="https://4571fd86-c6e8-4b28-be83-37e7c169c2e8.europe-west3-0.gcp.cloud.qdrant.io:6333", 
-    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.wj9B-1afGxTGUY3MMaxnS0S9aTsumAPzYw4DqtAwkg8",
+    url=os.getenv("QDRANT_URL"), 
+    api_key=os.getenv("QDRANT_KEY"),
 )
 encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -47,6 +50,12 @@ def add_embeddings(data: NoteData):
                 size=encoder.get_sentence_embedding_dimension(),  # Vector size is defined by used model
                 distance=models.Distance.COSINE,
                 ),
+        )
+
+        client.create_payload_index(
+            collection_name="my_notes",
+            field_name="user_id",
+            field_schema=models.PayloadSchemaType.KEYWORD 
         )
     
     payload = {
