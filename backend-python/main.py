@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import uuid
 # python -m uvicorn main:app --reload
 
+
 class NoteData(BaseModel):
     note_id: str
     user_id: str
@@ -21,7 +22,11 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
-client = QdrantClient(path="/Users/sanilparmar/Desktop/notes-app/backend-python/vector_embeddings")
+# client = QdrantClient(path="/Users/sanilparmar/Desktop/notes-app/backend-python/vector_embeddings")
+client = QdrantClient(
+    url="https://4571fd86-c6e8-4b28-be83-37e7c169c2e8.europe-west3-0.gcp.cloud.qdrant.io:6333", 
+    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.wj9B-1afGxTGUY3MMaxnS0S9aTsumAPzYw4DqtAwkg8",
+)
 encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 @app.get("/")

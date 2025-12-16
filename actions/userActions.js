@@ -62,3 +62,9 @@ export const deleteNote = async (noteId) => {
     await connectDB();
     await Note.deleteOne({_id: noteId});
 }
+
+export const deleteAll = async (userId) => {
+    await connectDB();
+    console.log(userId)
+    await Note.deleteMany({userId: userId})
+}

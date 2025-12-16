@@ -25,6 +25,7 @@ const profile = () => {
   const [ragQuery, setRagQuery] = useState("");
   const [llmResponse, setLlmResponse] = useState("");
   const [sendReqtoLLm, setSendReqtoLLm] = useState(false);
+  const [deleteAllNotes, setDeleteAllNotes] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -194,6 +195,23 @@ const profile = () => {
     run();
   }, [sendReqtoLLm])
 
+  useEffect(() => {
+    const run = async () => {
+        if (deleteAllNotes === true) {
+          if (confirm("Do you want to delete all notes")) {
+            await axios.delete(`/api/user?userId=${userId}`);
+            await fetchData();
+            setMode(0);
+          }
+        }
+
+        setDeleteAllNotes(false);
+    }
+
+    run();
+  }, [deleteAllNotes, userId])
+  
+
   return (
     <>
       <Navbar />
@@ -201,7 +219,10 @@ const profile = () => {
 
       <div className='grid grid-cols-5 p-2 text-white'>
         <div className='col-span-1 flex flex-col gap-4'>
-          <button type='button' onClick={() => { setMode(0); setForm({}); setTags([]); }}>Plus sign</button>
+          <div className='grid grid-cols-4 gap-2'>
+            <button className='border border-white col-span-3' type='button' onClick={() => { setMode(0); setForm({}); setTags([]); }}>Plus sign</button>
+            <button onClick={() => {setDeleteAllNotes(true);}} className='border border-white col-span-1' type='button'>Delete all</button>
+          </div>
           <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} fetchData={fetchData} />
         </div>
         <div className='col-span-4 p-4'>
