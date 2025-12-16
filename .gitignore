@@ -102,5 +102,5 @@ db.sqlite3
 .vscode/
 .idea/
 
-
+/backend-python/vector_embeddings/
 
