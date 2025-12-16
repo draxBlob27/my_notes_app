@@ -126,14 +126,15 @@ const profile = () => {
 
   const preProcess = async (ragQuery) => {
     const semantic = await embedding_results(ragQuery, userId, notes);
+    // console.log("Semnatic response: ", semantic)
     let text = "Query: ";
-    text += ragQuery;
+    text += ragQuery.toString();
+    // console.log("RagQuery: ",ragQuery.toString())
     text += "\n\n--- NOTES ---\n";
-    for (const note of notes) {
-      if (semantic.includes(note.id)) {
+    for (const note of semantic) {
+        // console.log("Noteid: ",note.id)
         text += note.content;
         text += "\n";
-      }
     }
 
     const final_message = [
@@ -147,24 +148,34 @@ const profile = () => {
       }
     ]
 
+    console.log(final_message)
     return final_message
   }
 
   const getResponseLLM = async (messages) => {
-    const response = await axios.post(
-      'http://localhost:8000/v1/chat/completions',
-      {
-        model: "meta-llama/Llama-3.1-8B-Instruct",
-        messages: messages
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
+    try {
+      const response = await axios.post(
+        'https://8000-01kch0gg4kkf20zn0pd82f62wc.cloudspaces.litng.ai/v1/chat/completions',
+        {
+          model: "meta-llama/Llama-3.1-8B-Instruct",
+          messages: messages
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      }
-    );
+      );
+      
+      const res = response.data.choices[0].message.content
+      // console.log(res)
+      return res
 
-    return response.data;
+    } catch (error) {
+      return "Turn on backend"
+    }
+
+    // return response.data ?? "LLM response";
   }
 
   useEffect(() => {
@@ -173,8 +184,9 @@ const profile = () => {
 
     const run = async () => {
       const messages = await preProcess(ragQuery);
+      // console.log(messages)
       const res = await getResponseLLM(messages)
-      setLlmResponse(res.choices[0].message.content);
+      setLlmResponse(res);
       setRagQuery("");
       setSendReqtoLLm(false);
     }
