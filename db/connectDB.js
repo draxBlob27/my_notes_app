@@ -6,7 +6,7 @@ export const connectDB = async () => {
         return;
     }
     try {
-        let conn = await mongoose.connect(`mongodb://localhost:27017/notes`);
+        let conn = await mongoose.connect(`${process.env.MONGODB_URI}/notes`);
         console.log(`MongoDB connect: ${conn.connection.host}`);
     } catch (error) {
         console.error(error.message);
