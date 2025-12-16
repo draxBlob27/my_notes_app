@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from qdrant_client import models, QdrantClient
-# from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 import uuid
 from dotenv import load_dotenv
 import os
-import requests
 
 # python -m uvicorn main:app --reload
 load_dotenv(dotenv_path='/Users/sanilparmar/Desktop/notes-app/.env.local')
@@ -31,7 +30,7 @@ client = QdrantClient(
     url=os.getenv("QDRANT_URL"), 
     api_key=os.getenv("QDRANT_KEY"),
 )
-# encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 @app.get("/")
 def home():
@@ -40,25 +39,15 @@ def home():
 def db_exists(db_name):
     return client.collection_exists(db_name)
 
-def get_embeddings(text: str):
-    API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
-    headers = {"Authorization": f"Bearer {os.getenv('HF_TOKEN')}"}
-    response = requests.post(API_URL, headers=headers, json={"inputs": text})
-
-    if response.status_code == 200:
-        return response.json()[0]
-    else:
-        raise Exception(f"API Error: {response.status_code}")
-
 @app.post("/save_embeddings")
 def add_embeddings(data: NoteData):
     combined_text = f"{data.topic} {data.tags} {data.content}"
-    embeddings = get_embeddings(combined_text)
+    embeddings = encoder.encode(combined_text).tolist()
     if not db_exists("my_notes"):
         client.create_collection(
             collection_name="my_notes",
             vectors_config=models.VectorParams(
-                size=384,  # Vector size is defined by used model
+                size=encoder.get_sentence_embedding_dimension(),  # Vector size is defined by used model
                 distance=models.Distance.COSINE,
                 ),
         )
@@ -89,14 +78,13 @@ def add_embeddings(data: NoteData):
 
 @app.get("/search")
 def match_query(query: str, user_id: str):
-    query_embedding = get_embeddings(query)
     user_filter = models.Filter(
         must = [models.FieldCondition(key = "user_id", match=models.MatchValue(value=user_id))]
     )
     
     hits = client.query_points(
         collection_name="my_notes",
-        query=query_embedding,
+        query=encoder.encode(query).tolist(),
         limit= 3,
         query_filter = user_filter,
         with_payload=True,

@@ -43,7 +43,7 @@ const profile = () => {
     const note_id = res.data.message;
     // console.log(note_id)
 
-    axios.post(`https://sanil-notes-985d47a3419b.herokuapp.com/save_embeddings`, { note_id: note_id, user_id: userId, topic: form.topic, tags: finalTags.toString(), content: form.content });
+    axios.post(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/save_embeddings`, { note_id: note_id, user_id: userId, topic: form.topic, tags: finalTags.toString(), content: form.content });
     // console.log(embed)
     fetchNotes(user._id);
     setForm({});
@@ -77,7 +77,7 @@ const profile = () => {
 
 
   const embedding_results = async (query, user_id, notes) => {
-    const res = await axios.get(`https://sanil-notes-985d47a3419b.herokuapp.com/search?query=${query}&user_id=${user_id}`);
+    const res = await axios.get(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/search?query=${query}&user_id=${user_id}`);
     const semanticIds = res.data;
     return notes.filter(note =>
       semanticIds.includes(note.id)
