@@ -15,7 +15,10 @@ const SearchResult = ({ rawNotes, semanticNotes, setSelectedNoteId, setMode }) =
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {semanticNotes.length > 0 ? (
                         semanticNotes.map((note, index) => (
-                            <div key={`sem-${note.id ?? index}`} className="group bg-slate-800/30 border border-indigo-500/20 hover:border-indigo-500/50 p-5 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10">
+                            <div onClick={() => {
+                                setSelectedNoteId(note.id);
+                                setMode(1);
+                            }} key={`sem-${note.id ?? index}`} className="group bg-slate-800/30 border border-indigo-500/20 hover:border-indigo-500/50 p-5 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10">
                                 <h3 className="text-lg font-bold text-slate-100 mb-2 group-hover:text-indigo-300 transition-colors">{note.topic}</h3>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {note.tags?.toString().split(',').map((tag, i) => (
