@@ -40,7 +40,7 @@ export default function Home() {
 
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight mb-8">
             Your Thoughts, <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+            <span className="bg-linear-to-r from-indigo-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent bg-size-[200%_auto] animate-gradient">
               Supercharged.
             </span>
           </h1>
