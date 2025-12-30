@@ -31,20 +31,17 @@ const profile = () => {
     e.preventDefault();
     let user = await fetchUser(session.user?.email);
     setUserId(user._id);
-    // if (form.tags.length)
-    //   tags.push(form.tags.trim());
 
     const finalTags =
       form.tags.length
         ? [...tags, form.tags.trim()]
         : [...tags];
-
+    
     const res = await axios.post(`/api/note?userId=${user._id}`, { ...form, tags: finalTags })
     const note_id = res.data.message;
-    // console.log(note_id)
 
     axios.post(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/save_embeddings`, { note_id: note_id, user_id: userId, topic: form.topic, tags: finalTags.toString(), content: form.content });
-    // console.log(embed)
+    
     fetchNotes(user._id);
     setForm({});
     setTags([]);
@@ -65,7 +62,6 @@ const profile = () => {
   const fetchNotes = async (userId) => {
     const noteRes = await axios.get(`/api/note?userId=${userId}`);
     setNotes(noteRes.data);
-    // console.log(notes);
   }
 
   useEffect(() => {
@@ -77,7 +73,12 @@ const profile = () => {
 
 
   const embedding_results = async (query, user_id, notes) => {
-    const res = await axios.get(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/search?query=${query}&user_id=${user_id}`);
+    let res;
+    try {
+      res = await axios.get(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/search?query=${query}&user_id=${user_id}`);
+    } catch (error) {
+      res = {data:"Backend off"}
+    }
     const semanticIds = res.data;
     return notes.filter(note =>
       semanticIds.includes(note.id)
@@ -127,13 +128,10 @@ const profile = () => {
 
   const preProcess = async (ragQuery) => {
     const semantic = await embedding_results(ragQuery, userId, notes);
-    // console.log("Semnatic response: ", semantic)
     let text = "Query: ";
     text += ragQuery.toString();
-    // console.log("RagQuery: ",ragQuery.toString())
     text += "\n\n--- NOTES ---\n";
     for (const note of semantic) {
-        // console.log("Noteid: ",note.id)
         text += note.content;
         text += "\n";
     }
@@ -148,8 +146,6 @@ const profile = () => {
         "content": text
       }
     ]
-
-    console.log(final_message)
     return final_message
   }
 
@@ -169,14 +165,11 @@ const profile = () => {
       );
       
       const res = response.data.choices[0].message.content
-      // console.log(res)
       return res
 
     } catch (error) {
       return "Turn on backend"
     }
-
-    // return response.data ?? "LLM response";
   }
 
   useEffect(() => {
@@ -185,7 +178,6 @@ const profile = () => {
 
     const run = async () => {
       const messages = await preProcess(ragQuery);
-      // console.log(messages)
       const res = await getResponseLLM(messages)
       setLlmResponse(res);
       setRagQuery("");
@@ -213,27 +205,51 @@ const profile = () => {
   
 
   return (
-    <>
+    <div className='min-h-screen bg-[#0f172a] text-slate-200 font-sans'>
       <Navbar />
-      <SearchBar query={query} setQuery={setQuery} setMode={setMode} />
+      
+      {/* Search Container */}
+      <div className='max-w-7xl mx-auto px-4 py-6'>
+        <SearchBar query={query} setQuery={setQuery} setMode={setMode} />
+      </div>
 
-      <div className='grid grid-cols-5 p-2 text-white'>
-        <div className='col-span-1 flex flex-col gap-4'>
-          <div className='grid grid-cols-4 gap-2'>
-            <button className='border border-white col-span-3' type='button' onClick={() => { setMode(0); setForm({}); setTags([]); }}>Plus sign</button>
-            <button onClick={() => {setDeleteAllNotes(true);}} className='border border-white col-span-1' type='button'>Delete all</button>
+      <main className='max-w-7xl mx-auto grid grid-cols-5 gap-6 px-4 pb-10'>
+        
+        {/* Sidebar */}
+        <div className='col-span-1 flex flex-col gap-6 border-r border-slate-800 pr-6 min-h-[70vh]'>
+          <div className='flex flex-col gap-2'>
+            <button 
+              className='w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20' 
+              type='button' 
+              onClick={() => { setMode(0); setForm({}); setTags([]); }}
+            >
+              <span className='text-xl'>+</span> New Note
+            </button>
+            <button 
+              onClick={() => {setDeleteAllNotes(true);}} 
+              className='w-full border border-slate-700 hover:border-red-500/50 hover:bg-red-500/10 text-slate-400 hover:text-red-400 py-2 px-4 rounded-xl transition-all duration-200 text-sm' 
+              type='button'
+            >
+              Clear All
+            </button>
           </div>
-          <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} fetchData={fetchData} />
+          
+          <div className='overflow-y-auto custom-scrollbar'>
+            <h3 className='text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 px-2'>Your Topics</h3>
+            <ShowTopics notes={notes} setSelectedNoteId={setSelectedNoteId} setMode={setMode} fetchData={fetchData} />
+          </div>
         </div>
-        <div className='col-span-4 p-4'>
+
+        {/* Content Area */}
+        <div className='col-span-4 bg-slate-900/50 rounded-2xl border border-slate-800 p-6 backdrop-blur-sm shadow-xl'>
           {mode === 0 && <AddNoteWindow form={form} setForm={setForm} tags={tags} setTags={setTags} handleSubmit={handleSubmit} />}
           {mode === 1 && <ShowNote notes={notes} noteId={selectedNoteId} />}
           {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData} />}
-          {mode === 3 && <SearchResult rawNotes={raw_notes} semanticNotes={note_semantic} />}
+          {mode === 3 && <SearchResult rawNotes={raw_notes} semanticNotes={note_semantic} setSelectedNoteId={setSelectedNoteId} setMode={setMode}/>}
           {mode === 4 && <RagInterface ragQuery={ragQuery} setRagQuery={setRagQuery} setSendReqtoLLm={setSendReqtoLLm} llmResponse={llmResponse} />}
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   )
 }
 
