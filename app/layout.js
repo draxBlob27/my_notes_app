@@ -17,6 +17,9 @@ export const metadata = {
   description: "NoteMind is an advanced note-taking platform featuring semantic search, a custom vector database, and RAG-powered AI chat. Chat with your notes and organize your thoughts with Llama 3.1.",
   keywords: ["Notes", "AI", "Vector Database", "RAG", "Llama 3.1", "Semantic Search", "Productivity"],
   authors: [{ name: "Sanil" }],
+  icons: {icon:[
+    {url: '/favicon.ico'}
+  ]}
 };
 
 export default function RootLayout({ children }) {
