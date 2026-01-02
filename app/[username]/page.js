@@ -26,6 +26,7 @@ const profile = () => {
   const [llmResponse, setLlmResponse] = useState("");
   const [sendReqtoLLm, setSendReqtoLLm] = useState(false);
   const [deleteAllNotes, setDeleteAllNotes] = useState(false);
+  const [topK, setTopK] = useState(3);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,10 +73,10 @@ const profile = () => {
   }, [session])
 
 
-  const embedding_results = async (query, user_id, notes) => {
+  const embedding_results = async (query, user_id, notes, topK) => {
     let res;
     try {
-      res = await axios.get(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/search?query=${query}&user_id=${user_id}`);
+      res = await axios.get(`https://8000-01kckj2z67dwp8dmhn353jxmwj.cloudspaces.litng.ai/search?query=${query}&user_id=${user_id}&topK=${topK}`);
     } catch (error) {
       res = {data:"Backend off"}
     }
@@ -114,7 +115,7 @@ const profile = () => {
       const raw = raw_results(query, notes);
       setRaw_notes(raw);
 
-      embedding_results(query, userId, notes)
+      embedding_results(query, userId, notes, topK)
         .then(setNote_semantic)
         .catch(console.error);
     }
@@ -124,7 +125,7 @@ const profile = () => {
       setNote_semantic([]);
       return;
     }
-  }, [query, notes, userId])
+  }, [query, notes, userId, topK])
 
   const preProcess = async (ragQuery) => {
     const semantic = await embedding_results(ragQuery, userId, notes);
@@ -210,7 +211,7 @@ const profile = () => {
       
       {/* Search Container */}
       <div className='max-w-7xl mx-auto px-4 py-6'>
-        <SearchBar query={query} setQuery={setQuery} setMode={setMode} />
+        <SearchBar query={query} setQuery={setQuery} setMode={setMode} topK={topK} setTopK={setTopK}/>
       </div>
 
       <main className='max-w-7xl mx-auto grid grid-cols-5 gap-6 px-4 pb-10'>
@@ -246,7 +247,7 @@ const profile = () => {
           {mode === 1 && <ShowNote notes={notes} noteId={selectedNoteId} />}
           {mode === 2 && <EditingWindow notes={notes} noteId={selectedNoteId} form={form} setForm={setForm} tags={tags} setTags={setTags} setMode={setMode} refreshData={fetchData} />}
           {mode === 3 && <SearchResult rawNotes={raw_notes} semanticNotes={note_semantic} setSelectedNoteId={setSelectedNoteId} setMode={setMode}/>}
-          {mode === 4 && <RagInterface ragQuery={ragQuery} setRagQuery={setRagQuery} setSendReqtoLLm={setSendReqtoLLm} llmResponse={llmResponse} />}
+          {mode === 4 && <RagInterface ragQuery={ragQuery} setRagQuery={setRagQuery} setSendReqtoLLm={setSendReqtoLLm} llmResponse={llmResponse}/>}
         </div>
       </main>
     </div>

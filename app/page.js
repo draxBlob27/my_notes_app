@@ -105,7 +105,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 border-t border-slate-800/50 text-center">
         <p className="text-sm text-slate-500 tracking-widest uppercase font-bold">
-          Made for the future
+          Copyright © 2025 NoteMind • Made for the future
         </p>
       </footer>
 
